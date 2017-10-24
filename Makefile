@@ -4,8 +4,8 @@ SOURCES=main.c
 
 PROGRAMMER=usbasp
 #auskommentieren für automatische Wahl
-PORT=-P/dev/ttyS0
-BAUD=-B115200
+#PORT=-P/dev/ttyS0
+#BAUD=-B115200
 
 #Ab hier nichts verändern
 OBJECTS=$(SOURCES:.c=.o)
