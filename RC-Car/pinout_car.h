@@ -1,5 +1,13 @@
-#ifndef atmega328p_pinout
-#define atmega328p_pinout
+/*
+ * pinout_car.h
+ *
+ * Created: 24.10.2017 23:06:09
+ *  Author: Victor
+ */ 
+
+
+#ifndef PINOUT_CAR_H_
+#define PINOUT_CAR_H_
 
 #define LORA_RESET
 #define LORA_NSS
@@ -16,4 +24,7 @@
 #define SWITCH_CAM
 #define SENSOR_RPM
 
-#endif
+
+
+
+#endif /* PINOUT_CAR_H_ */
