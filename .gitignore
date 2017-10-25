@@ -4,3 +4,9 @@
 *.srec
 *.elf
 *.o
+*.srec
+*.eep
+*.d
+*.mk
+RC-Car/Release/Makefile
+RC-Car/Debug/Makefile
