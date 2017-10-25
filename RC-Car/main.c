@@ -60,12 +60,11 @@ void sleep(){
 }
 
 void add_schedule(task schedule) {
-	scheduler[schedule_last]=schedule;
 	scheduler[schedule_inc(schedule_last)]=default_schedule;
 }
 
 void get_lora_package(){
-	unsigned char pack_size;
+	unsigned char pack_size=SPI_read();
 	for(unsigned char i=0;i<HEADERSIZE;i++) spi_buffer[!spi_buffer_index][i]=SPI_read();
 	spi_buffer_index=!spi_buffer_index;
 	for(unsigned char i=0;i<pack_size;i++) exec_command(SPI_read());
@@ -86,9 +85,11 @@ ISR(INT0_vect)//lora pack reciving
 
 int main(void)
 {
+	for(unsigned char i=0;i<schedule_max;i++) scheduler[i]=default_schedule;
 	SPI_MasterInit();
-	while(1)
-	{
-		scheduler[schedule_inc(schedule_first)]();
-	}
+	main_loop:
+		scheduler[schedule_first]();
+		scheduler[schedule_first]=default_schedule;
+		schedule_inc(schedule_first);
+	goto main_loop;
 }
