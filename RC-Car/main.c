@@ -39,15 +39,6 @@ void exec_command(unsigned char command){
 	}
 }
 
-void SPI_MasterInit(void)
-{
-	/* Set MOSI and SCK output, all others input */
-	DDRB = (1<<DDB3)|(1<<DDB5);
-	/* Enable SPI, Master, set clock rate fck/16 */
-	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
-
-}
-
 // utterly pointless separate 'functions'
 #define SPI_write(c)    spi(c)
 #define SPI_read(c)     spi(0)
@@ -75,10 +66,29 @@ void get_lora_package(){//reserved later car func
 	spi_buffer_index=!spi_buffer_index;
 	for(unsigned char i=0;i<pack_size;i++) exec_command(SPI_read());
 }
+void init_servos(){
+	//direction
+	TCCR1A = _BV(COM1A1) | _BV(COM1B1) | _BV(WGM11); // FastPWM Mode mode TOP determined by ICR1 - non-inverting Compare Output mode
+	TCCR1B = _BV(WGM13) | _BV(WGM12) | _BV(CS11);    // set prescaler to 8, FastPWM Mode mode continued
+	ICR1 = 20000;      // set period to 20 ms
+	OCR1A = 1500;      // set count to 1500 us - 90 degree
+	OCR1B = 1500;      // set count to 1500 us - 90 degree
+	TCNT1 = 0;         // reset timer
+}
+
+void init_spi_lora()
+{
+	/* Set MOSI and SCK output, all others input */
+	DDRB = (1<<DDB3)|(1<<DDB5);
+	/* Enable SPI, Master, set clock rate fck/16 */
+	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
+
+}
 
 void init(){//first task to execute
 	for(unsigned char i=0;i<schedule_max;i++) scheduler[i]=default_schedule;
-	add_task(SPI_MasterInit);
+	add_task(init_spi_lora);
+	add_task(init_servos);
 }
 
 //end tasks
