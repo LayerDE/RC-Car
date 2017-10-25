@@ -3,6 +3,7 @@
  *
  * Created: 24.10.2017 22:06:32
  * Author : Victor
+ * 
  */ 
 //Interner Takt 3.3V
 #define F_CPU 8000000UL
@@ -13,8 +14,10 @@
 #include "pinout_car.h"
 #include "sx1278_defs.h"
 
-#define schedule_inc(x) (x=(x+1)&(schedule_max-1))
 #define schedule_max (1<<4)
+//schedule_max-1 tasks work without any bugs  schedule_max must be 2^n for the performance (if its not 2^n its a performance issue)
+#define schedule_inc(x) (x=(x+1)&(schedule_max-1))
+//#define schedule_inc(x) ((x+1)>schedule_max?(++x):(x=0))
 #define default_schedule sleep
 
 #define HEADERSIZE 0
@@ -102,6 +105,7 @@ int main(void)
 	main_loop://While(1){//Contexswitch means stack mark and goto not
 		scheduler[schedule_first]();
 		scheduler[schedule_first]=default_schedule;
-		(schedule_first==schedule_last)?schedule_first=schedule_inc(schedule_last):schedule_inc(schedule_first);
+		//if(schedule_first!=schedule_last) schedule_inc(schedule_first);//looks better but doesnt work with schedule_max tasks because the task sticks
+		(schedule_first==schedule_last)?schedule_first=schedule_inc(schedule_last):schedule_inc(schedule_first);//schedule_max tasks works as long as now new task will be added
 	goto main_loop;//}
 }
