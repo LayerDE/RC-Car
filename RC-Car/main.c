@@ -25,7 +25,7 @@
 typedef void (*task)(void);
 char cData;
 unsigned char schedule_first=0;
-unsigned char schedule_last=0;
+unsigned char schedule_last=schedule_max-1;
 task scheduler[schedule_max];
 task ADC_task;//reserved
 unsigned char spi_buffer[2][4];
@@ -65,11 +65,11 @@ void sleep(){
 	sleep_mode();//goto sleep
 }
 
-void add_task(task schedule) {
+void add_task(task schedule) {//add task to scheduler
 	scheduler[schedule_inc(schedule_last)]=schedule;
 }
 
-void get_lora_package(){
+void get_lora_package(){//reserved later car func
 	unsigned char pack_size=SPI_read();
 	for(unsigned char i=0;i<HEADERSIZE;i++) spi_buffer[!spi_buffer_index][i]=SPI_read();
 	spi_buffer_index=!spi_buffer_index;
