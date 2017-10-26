@@ -3,8 +3,8 @@
  *
  * Created: 24.10.2017 22:06:32
  * Author : Victor
- * 
- */ 
+ *
+ */
 // Interner Takt 3.3V
 #define F_CPU 8000000UL
 
@@ -139,16 +139,16 @@ int main(void)
     main_loop:
         // While(1){
             // Contexswitch means stack mark and goto not
-        
+
         scheduler[schedule_first]();
         scheduler[schedule_first] = default_schedule;
 
         // if(schedule_first!=schedule_last) schedule_inc(schedule_first);
         // looks better but doesnt work with schedule_max tasks because the task sticks
-        
+
         (schedule_first == schedule_last) ? schedule_first = schedule_inc(schedule_last) : schedule_inc(schedule_first);
             // schedule_max tasks works as long as now new task will be added
-    goto main_loop;  
+    goto main_loop;
         // }
 }
 
