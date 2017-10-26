@@ -13,6 +13,7 @@
 #include <avr/io.h>//for Pin IO
 #include <avr/interrupt.h>//for Interrupts
 #include <avr/sleep.h>//for IDLE mode
+#include <avr/eeprom.h>//for programming values
 #include "pinout_car.h"
 #include "sx1278_defs.h"
 
@@ -68,15 +69,31 @@ void get_lora_package(){//reserved later car func
 	spi_buffer_index=!spi_buffer_index;
 	for(unsigned char i=0;i<pack_size;i++) exec_command(SPI_read());
 }
+
+#define SERVO_COUNT 4
+#define PRESCALER 1
+#define SERVO_PERIODE (unsigned int)20000/4*8/PRESCALER
+#define SERVO_MIDDLE 1500*8/PRESCALER
+#define SERVO_CALC(int16) (SERVO_MIDDLE*8/PRESCALER+int16)
+//declare an eeprom array
+unsigned int EEMEM servo_mid_eeprom[SERVO_COUNT]={1500*8/PRESCALER,1500*8/PRESCALER,1500*8/PRESCALER,1500*8/PRESCALER};
+unsigned int EEMEM servo_min_eeprom[SERVO_COUNT]={1000*8/PRESCALER,1000*8/PRESCALER,1000*8/PRESCALER,1000*8/PRESCALER};
+unsigned int EEMEM servo_max_eeprom[SERVO_COUNT]={2000*8/PRESCALER,2000*8/PRESCALER,2000*8/PRESCALER,2000*8/PRESCALER};
+// declare a ram array
+unsigned int servo_mid_ram[SERVO_COUNT];
+unsigned int servo_min_ram[SERVO_COUNT];
+unsigned int servo_max_ram[SERVO_COUNT];
+
+
 void init_servos(){
 	//direction
 	//WGM1 to mode 4 for clear on compare with OCR1A
 	CONFIG_BYTE(TCCR1A , BIT(COM1A1) | BIT(COM1B1) , BIT(WGM10) | BIT(WGM11));// FastPWM Mode mode TOP determined by ICR1 - non-inverting Compare Output mode
 	CONFIG_BYTE(TCCR1B , BIT(WGM12) | BIT(CS10) , BIT(CS11) | BIT(CS12) | BIT(WGM13));    // set prescaler to 1, FastPWM Mode mode continued
 	CONFIG_BYTE(TIFR0 , BIT(OCF1A) | BIT(OCF1B),0);
-	ICR1 = 20000;      // set period to 20 ms
-	OCR1A = 1500;      // set count to 1500 us - 90 degree
-	OCR1B = 1500;      // set count to 1500 us - 90 degree
+	//ICR1 = 20000;      // set period to 20 ms
+	OCR1A = SERVO_PERIODE;      // set count to 1500 us - 90 degree
+	OCR1B = 1500*8;      // set count to 1500 us - 90 degree
 	TCNT1 = 0;         // reset timer
 }
 
