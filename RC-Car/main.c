@@ -6,6 +6,8 @@
  * 
  */ 
 //Interner Takt 3.3V
+#define BIT(n) (1<<n)
+#define CONFIG_BYTE(byte,on,off) byte = ((byte & (0xFF^(off)))|on)
 #define F_CPU 8000000UL
 
 #include <avr/io.h>//for Pin IO
@@ -68,8 +70,10 @@ void get_lora_package(){//reserved later car func
 }
 void init_servos(){
 	//direction
-	TCCR1A = _BV(COM1A1) | _BV(COM1B1) | _BV(WGM11); // FastPWM Mode mode TOP determined by ICR1 - non-inverting Compare Output mode
-	TCCR1B = _BV(WGM13) | _BV(WGM12) | _BV(CS11);    // set prescaler to 8, FastPWM Mode mode continued
+	//WGM1 to mode 4 for clear on compare with OCR1A
+	CONFIG_BYTE(TCCR1A , BIT(COM1A1) | BIT(COM1B1) , BIT(WGM10) | BIT(WGM11));// FastPWM Mode mode TOP determined by ICR1 - non-inverting Compare Output mode
+	CONFIG_BYTE(TCCR1B , BIT(WGM12) | BIT(CS10) , BIT(CS11) | BIT(CS12) | BIT(WGM13));    // set prescaler to 1, FastPWM Mode mode continued
+	CONFIG_BYTE(TIFR0 , BIT(OCF1A) | BIT(OCF1B),0);
 	ICR1 = 20000;      // set period to 20 ms
 	OCR1A = 1500;      // set count to 1500 us - 90 degree
 	OCR1B = 1500;      // set count to 1500 us - 90 degree
@@ -82,13 +86,27 @@ void init_spi_lora()
 	DDRB = (1<<DDB3)|(1<<DDB5);
 	/* Enable SPI, Master, set clock rate fck/16 */
 	SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
-
+	
+	//INT0 for pack reciving
+	EIMSK |= (1 << INT0);     // Turns on INT0
+	
+	sei();//enable interrupts
 }
 
 void init(){//first task to execute
 	for(unsigned char i=0;i<schedule_max;i++) scheduler[i]=default_schedule;
 	add_task(init_spi_lora);
 	add_task(init_servos);
+}
+
+//teil der uhr
+#define CLK_PRECOUNT (0x0100-200)
+unsigned char precount=0;
+unsigned int seconds=0;
+void clock_inc(){//kleine ungenaue uhr die mitläuft
+	if(++precount) return;
+	precount=CLK_PRECOUNT;
+	seconds++;
 }
 
 //end tasks
@@ -104,10 +122,35 @@ ISR(ADC_vect)//ADC isr reserved
 
 ISR(INT0_vect)//lora pack reciving
 {
+	/*
+		low
+		EICRA |= ( (0 << ISC01) | (0 << ISC00) );
+		//logical change
+		EICRA |= ( (0 << ISC01) | (1 << ISC00) );
+		//falling edge
+		EICRA |= ( (1 << ISC01) | (0 << ISC00) );
+		//ENABLE INT0 ON RISING EDGE
+		EICRA |= ( (1 << ISC01) | (1 << ISC00) );
+		EIMSK |= (1 << INT0); //ENABLE INT0
+
+	}
+	*/
+	
 	/* interrupt code here */
 	add_task(get_lora_package);
 }
 
+ISR (TIMER1_COMPA_vect)
+{
+	//reset
+	add_task(clock_inc);
+}
+
+ISR (TIMER1_COMPB_vect)
+{
+	// servocontrol
+
+}
 
 int main(void)
 {
