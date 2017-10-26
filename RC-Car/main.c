@@ -156,6 +156,43 @@ ISR(INT0_vect)//lora pack reciving
 	/* interrupt code here */
 	add_task(get_lora_package);
 }
+/*
+#define BUFSIZE 20
+volatile unsigned char incoming[BUFSIZE];
+volatile short int received=0;
+
+void send_message()
+{
+	setup_spi(SPI_MODE_1, SPI_MSB, SPI_NO_INTERRUPT, SPI_MSTR_CLK8);
+	if (SPCR & (1<<MSTR)) { // if we are still in master mode
+		SELECT_OTHER; // tell other device to flash LED twice
+		send_spi(FLASH_LED_COMMAND); send_spi(0x02); send_spi(0x00);
+		DESELECT_OTHER;
+	}
+	setup_spi(SPI_MODE_1, SPI_MSB, SPI_INTERRUPT, SPI_SLAVE);
+}
+
+void parse_message()
+{
+	switch(incoming[0]) {
+		case FLASH_LED_COMMAND:
+		flash_led(incoming[1]);
+		break;
+		default:
+		flash_led(20);
+	}
+}
+*/
+ISR(SPI_STC_vect)
+{
+	/*
+	incoming[received++] = received_from_spi(0x00);
+	if (received >= BUFSIZE || incoming[received-1] == 0x00) {
+		parse_message();
+		received = 0;
+	}
+	*/
+}
 
 ISR (TIMER1_COMPA_vect)
 {
