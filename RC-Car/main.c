@@ -84,7 +84,9 @@ unsigned int servo_mid_ram[SERVO_COUNT];
 unsigned int servo_min_ram[SERVO_COUNT];
 unsigned int servo_max_ram[SERVO_COUNT];
 
-
+#define SPI_BUFFER_SIZE (1<<5)
+unsigned char spi_buffer_ptr=0;
+unsigned char spi_buffer[SPI_BUFFER_SIZE]
 void init_servos(){
 	//direction
 	//WGM1 to mode 4 for clear on compare with OCR1A
@@ -185,6 +187,9 @@ void parse_message()
 */
 ISR(SPI_STC_vect)
 {
+	SPDR = spi_buffer[++spi_buffer_index];
+	spi_buffer[spi_buffer_index] = SPDR;
+	
 	/*
 	incoming[received++] = received_from_spi(0x00);
 	if (received >= BUFSIZE || incoming[received-1] == 0x00) {
