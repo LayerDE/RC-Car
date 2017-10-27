@@ -6,6 +6,7 @@
  * 
  */ 
 // Interner Takt 8Mhz@3.3V
+// AVR is little Edian (like x86)
 #define F_CPU 8000000UL
 
 #define BIT(n) (1<<n)
@@ -15,8 +16,20 @@
 #include <avr/interrupt.h>	// for Interrupts
 #include <avr/sleep.h>		// for IDLE mode
 #include <avr/eeprom.h>		// for programming values
+#include <avr/pgmspace.h>	// for constant arrays
 #include "pinout_car.h"
 #include "sx1278_defs.h"
+
+/*
+(x can be replaced by A,B,C,D as per the AVR you are using)
+– DDRx register
+– PORTx register
+– PINx register
+*/
+
+
+// task framework
+typedef void (*task)(void);
 
 #define schedule_max (1<<4)
 // schedule_max-1 tasks work without any bugs  schedule_max must be 2^n for the performance (if its not 2^n its a performance issue)
@@ -24,20 +37,29 @@
 // #define schedule_inc(x) ((x + 1) > schedule_max ? (++x) : (x=0))
 #define default_schedule sleep
 
-typedef void (*task)(void);
-char cData;
 unsigned char schedule_first = 0;
 unsigned char schedule_last = schedule_max - 1;
 task scheduler[schedule_max];
-task ADC_task; // reserved
 
-// Car
-void exec_command(unsigned char command){
-	switch(command){
-		case 0:
-			break;
-	}
+void add_task(task schedule) {// add task to scheduler
+	scheduler[schedule_inc(schedule_last)]=schedule;
 }
+// end task framework
+
+//SPI framework
+#define SPI_BUFFER_SIZE (1 << 5)
+unsigned char spi_buffer_index = 0;
+unsigned char spi_buffer[SPI_BUFFER_SIZE];
+//end SPI framework
+
+// Car specific functions
+int servo_buffer[4];
+unsigned int eeprom_ptr=0xFFFF;
+void exec_command(unsigned int* command){
+	if((*command)&1) servo_buffer[(*command)&(0x02)]=(*command)/0x04;
+	
+}
+// end Car specific functions
 
 //tasks
 void sleep(){
@@ -45,9 +67,7 @@ void sleep(){
 	sleep_mode();//goto sleep
 }
 
-void add_task(task schedule) {// add task to scheduler
-	scheduler[schedule_inc(schedule_last)]=schedule;
-}
+task ADC_task; // reserved
 
 /*
 void get_lora_package(){//reserved later car func
@@ -60,7 +80,6 @@ void get_lora_package(){//reserved later car func
 #define SERVO_COUNT 4
 #define PRESCALER 1
 #define SERVO_PERIODE (unsigned int)20000/4*8/PRESCALER
-#define SERVO_MIDDLE 1500*8/PRESCALER
 #define SERVO_CALC(int16) (SERVO_MIDDLE*8/PRESCALER+int16)
 // declare an eeprom array
 unsigned char servo_index = 0; // index of the servo who gets signal now
@@ -71,16 +90,16 @@ unsigned int EEMEM servo_max_eeprom[SERVO_COUNT]={2000*8/PRESCALER,2000*8/PRESCA
 unsigned int servo_mid_ram[SERVO_COUNT];
 unsigned int servo_min_ram[SERVO_COUNT];
 unsigned int servo_max_ram[SERVO_COUNT];
-
-#define SPI_BUFFER_SIZE (1<<5)
-unsigned char spi_buffer_ptr=0;
-unsigned char spi_buffer[SPI_BUFFER_SIZE]
+unsigned const char SERVO_PIN[SERVO_COUNT] PROGMEM={SERVO_ESC,SERVO_LIGHTS,SERVO_STEERING,SERVO_CAM}; 
 void init_servos(){
 	// direction
 	// WGM1 to mode 4 for clear on compare with OCR1A
 	CONFIG_BYTE(TCCR1A , BIT(COM1A1) | BIT(COM1B1) , BIT(WGM10) | BIT(WGM11));// FastPWM Mode mode TOP determined by ICR1 - non-inverting Compare Output mode
 	CONFIG_BYTE(TCCR1B , BIT(WGM12) | BIT(CS10) , BIT(CS11) | BIT(CS12) | BIT(WGM13));    // set prescaler to 1, FastPWM Mode mode continued
 	CONFIG_BYTE(TIFR0 , BIT(OCF1A) | BIT(OCF1B),0);
+	
+	DDRC = 0x0F; // Servo out
+
 	//ICR1 = 20000;      // set period to 20 ms
 	OCR1A = SERVO_PERIODE;      // set count to 1500 us - 90 degree
 	OCR1B = servo_mid_eeprom[servo_index];      // set count to 1500 us - 90 degree
@@ -100,8 +119,8 @@ void init_spi_lora()
 	sei();//enable interrupts
 }
 
-void init(){//first task to execute
-	for(unsigned char i=0;i<schedule_max;i++) scheduler[i]=default_schedule;
+void init(){ // first task to execute
+	for(unsigned char i=0;i<schedule_max;i++) scheduler[i]=default_schedule; // set all tasks to sleep
 	add_task(init_spi_lora);
 	add_task(init_servos);
 }
@@ -143,8 +162,9 @@ ISR(INT0_vect) // lora pack reciving
 	}
 	*/
 	
-	add_task(get_lora_package);
+	add_task(sleep);
 }
+
 
 ISR(SPI_STC_vect) // spi per interrupt for higher performance
 {
@@ -155,12 +175,16 @@ ISR(SPI_STC_vect) // spi per interrupt for higher performance
 
 ISR (TIMER1_COMPA_vect)
 {
+	PORTC|=
+	OCR1B=servo_buffer[servo_index++];
+	servo_index&=0x0F;
 	// reset timer1
 	add_task(clock_inc);
 }
 
 ISR (TIMER1_COMPB_vect)
 {
+	PORTC&=0xF0;
 	// servocontrol
 
 }
