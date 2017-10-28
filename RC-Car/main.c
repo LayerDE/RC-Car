@@ -22,9 +22,9 @@
 
 /*
 (x can be replaced by A,B,C,D as per the AVR you are using)
-– DDRx register
-– PORTx register
-– PINx register
+ DDRx register
+ PORTx register
+ PINx register
 */
 
 
@@ -104,6 +104,28 @@ void init_servos(){
 	OCR1A = SERVO_PERIODE;      // set count to 1500 us - 90 degree
 	OCR1B = servo_mid_eeprom[servo_index];      // set count to 1500 us - 90 degree
 	TCNT1 = 0;         // reset timer
+	sei();
+}
+
+// teil der uhr
+#define CLK_PRECOUNT (0x0100-200)
+unsigned char precount=0;
+unsigned int seconds=0;
+
+void servo_tester(){ // pythonsytyler :D
+	if(!(seconds%4))
+		for(char x=0;x<SERVO_COUNT;x++)
+			servo_buffer[x]=servo_min_ram[x];
+	else if(!(seconds%2))
+		for(char x=0;x<SERVO_COUNT;x++)
+			servo_buffer[x]=servo_min_ram[x];
+}
+
+void clock_inc(){ // kleine ungenaue uhr die mitläuft
+	if(++precount) return;
+	precount=CLK_PRECOUNT;
+	seconds++;
+	add_task(servo_tester);
 }
 
 void init_spi_lora()
@@ -123,16 +145,7 @@ void init(){ // first task to execute
 	for(unsigned char i=0;i<schedule_max;i++) scheduler[i]=default_schedule; // set all tasks to sleep
 	add_task(init_spi_lora);
 	add_task(init_servos);
-}
-
-// teil der uhr
-#define CLK_PRECOUNT (0x0100-200)
-unsigned char precount=0;
-unsigned int seconds=0;
-void clock_inc(){ // kleine ungenaue uhr die mitläuft
-	if(++precount) return;
-	precount=CLK_PRECOUNT;
-	seconds++;
+	add_task(servo_tester);
 }
 
 // end tasks
@@ -175,7 +188,7 @@ ISR(SPI_STC_vect) // spi per interrupt for higher performance
 
 ISR (TIMER1_COMPA_vect)
 {
-	PORTC|=
+	PORTC|=SERVO_PIN[servo_index];
 	OCR1B=servo_buffer[servo_index++];
 	servo_index&=0x0F;
 	// reset timer1
