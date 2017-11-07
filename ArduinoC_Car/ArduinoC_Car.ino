@@ -2,8 +2,9 @@
 #include <SPI.h>
 #include <LoRa.h>
 #define SERVO_COUNT (1<<2)
+#define SERVO_MID 1500
 Servo servo[SERVO_COUNT];
-const uint8_t PROGMEM SERVO_PIN[SERVO_COUNT]={0,1,2,3};
+const uint8_t PROGMEM SERVO_PIN[SERVO_COUNT]={14,15,16,17};
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
@@ -43,16 +44,29 @@ void loop() {
 }
 */
 void loop(){}
+union parameter {
+  char bit_8[2];
+  int16_t bit_16;
+};
+
 void onReceive(int packetSize) {
   // received a packet
   Serial.print("Received packet '");
-
+  union parameter tmp;
   // read packet
   for (int i = 0; i < packetSize; i++) {
-    Serial.print((char)LoRa.read());
+    if(i%2){
+      tmp.bit_8[1]=(char)LoRa.read();
+      exec_servo(tmp.bit_16);
+    }
+    else{
+      tmp.bit_8[0]=(char)LoRa.read();
+    }
+    
   }
-
-  // print RSSI of packet
-  Serial.print("' with RSSI ");
-  Serial.println(LoRa.packetRssi());
+  
+  //LoRa.packetRssi(); //signalstärke
+}
+void exec_servo(int16_t data){
+  servo[data&0xF].writeMicroseconds(SERVO_MID+data/0x10);  
 }

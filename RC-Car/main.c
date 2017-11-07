@@ -6,7 +6,7 @@
  * 
  */ 
 // Interner Takt 8Mhz@3.3V
-// AVR is little Edian (like x86)
+// AVR is little Edian (like x86) will be importat by swiching transmitter conroller
 #define F_CPU 8000000UL
 
 #define BIT(n) (1<<n)
@@ -17,6 +17,7 @@
 #include <avr/sleep.h>		// for IDLE mode
 #include <avr/eeprom.h>		// for programming values
 #include <avr/pgmspace.h>	// for constant arrays
+#include <avr/wdt.h>
 #include "pinout_car.h"
 #include "sx1278_defs.h"
 
@@ -140,12 +141,17 @@ void init_spi_lora()
 	
 	sei();//enable interrupts
 }
+void init_watchdog(){//for debug LED or another stupid function
+	CONFIG_BYTE(WDTCSR,BIT(WDP2)|BIT(WDIE),BIT(4/*WDTOE*/)|BIT(WDP1)|BIT(WDP0)|BIT(WDE));
+	wdt_reset();
+}
 
 void init(){ // first task to execute
 	for(unsigned char i=0;i<schedule_max;i++) scheduler[i]=default_schedule; // set all tasks to sleep
 	add_task(init_spi_lora);
 	add_task(init_servos);
 	add_task(servo_tester);
+	add_task(init_watchdog);
 }
 
 // end tasks
@@ -200,6 +206,13 @@ ISR (TIMER1_COMPB_vect)
 	PORTC&=0xF0;
 	// servocontrol
 
+}
+void set_LED(){
+	PORTB|=(1<<5);
+	WDTCSR |= (1<<WDIE);//start watchdog
+}
+ISR(WDT_vect){
+	PORTB&=~(1<<5);
 }
 
 int main(void)
