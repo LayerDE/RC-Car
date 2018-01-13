@@ -21,12 +21,13 @@
 #include "pinout_car.h"
 #include "sx1278_defs.h"
 
-/*
-(x can be replaced by A,B,C,D as per the AVR you are using)
- DDRx register
- PORTx register
- PINx register
-*/
+
+/**
+ * Use with A,B,C or D
+ */
+#define DDR(x) DDR##x
+#define PORT(x) PORT##x
+#define PIN(x) PIN##x
 
 
 // task framework
@@ -88,7 +89,7 @@ void get_lora_package(){//reserved later car func
 */
 #define throw_ERROR add_task(LED_on)
 void LED_on(){
-	PORTB|=(1<<5);
+	PORT(B)|=(1<<5);
 	wdt_reset();//reset interval for error spamming
 	WDTCSR |= (1<<WDIE);//start watchdog
 }
@@ -117,7 +118,7 @@ void init_servos(){
 	CONFIG_BYTE(TCCR1B , BIT(WGM12) | BIT(CS10) , BIT(CS11) | BIT(CS12) | BIT(WGM13));    // set prescaler to 1, FastPWM Mode mode continued
 	CONFIG_BYTE(TIFR0 , BIT(OCF1A) | BIT(OCF1B),0);
 	
-	DDRC = 0x0F; // Servo out
+	DDR(C) = 0x0F; // Servo out
 
 	//ICR1 = 20000;      // set period to 20 ms
 	OCR1A = SERVO_PERIODE;      // set count to 1500 us - 90 degree
@@ -150,7 +151,7 @@ void clock_inc(){ // kleine ungenaue uhr die mitl�uft
 void init_spi_lora()
 {
 	// Set MOSI and SCK output, all others input
-	DDRB = (1 << DDB3) | (1 << DDB5);
+	DDR(B) = (1 << DDB3) | (1 << DDB5);
 	// Enable SPI, Master, set clock rate fck/16
 	SPCR = (1 << SPE) | (1 << MSTR ) | (1 << SPR0);
 	
@@ -216,7 +217,7 @@ ISR(SPI_STC_vect) // spi per interrupt for higher performance
 
 ISR (TIMER1_COMPA_vect)
 {
-	PORTC|=SERVO_PIN[servo_index];
+	PORT(C)|=SERVO_PIN[servo_index];
 	OCR1B=servo_buffer[servo_index++];
 	servo_index&=0x0F;
 	// reset timer1
@@ -225,7 +226,7 @@ ISR (TIMER1_COMPA_vect)
 
 ISR (TIMER1_COMPB_vect)
 {
-	PORTC&=0xF0;
+	PORT(C)&=0xF0;
 	// servocontrol
 
 }
