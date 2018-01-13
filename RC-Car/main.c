@@ -6,7 +6,7 @@
  * 
  */ 
 // Interner Takt 8Mhz@3.3V
-// AVR is little Edian (like x86) will be importat by swiching transmitter conroller
+// AVR is little Edian (like x86) will be importat by swiching transmitter controller
 #define F_CPU 8000000UL
 
 #define BIT(n) (1<<n)
@@ -30,20 +30,33 @@
 
 
 // task framework
-typedef void (*task)(void);
+typedef void (*task)(void);//task is my name for a function pointer used in the scheduler
 
-#define schedule_max (1<<4)
-// schedule_max-1 tasks work without any bugs  schedule_max must be 2^n for the performance (if its not 2^n its a performance issue)
-#define schedule_inc(x) (x = (x + 1) & (schedule_max - 1))
-// #define schedule_inc(x) ((x + 1) > schedule_max ? (++x) : (x=0))
+// SCHEDULE_MAX-1 tasks work without any bugs  SCHEDULE_MAX must be 2^n for the performance (if its not 2^n its a performance issue)
+#define SCHEDULE_MAX (1<<4)
+#if (SCHEDULE_MAX & (SCHEDULE_MAX - 1))
+	//slower but usable for n tasks
+	#define SCHEDULE_INC(x) ((x + 1) > SCHEDULE_MAX ? (++x) : (x=0))
+#else
+	//faster but only for 2^n tasks
+	#define SCHEDULE_INC(x) (x = (x + 1) & (SCHEDULE_MAX - 1))
+#endif 
 #define default_schedule sleep
 
+//sleep task for saving energy by idleing the ÂµC
+void sleep(){
+	set_sleep_mode(SLEEP_MODE_IDLE);//setup IDLE mode. only 1/4 powerconsumption
+	sleep_mode();//goto sleep
+}
+
+
 unsigned char schedule_first = 0;
-unsigned char schedule_last = schedule_max - 1;
-task scheduler[schedule_max];
+unsigned char schedule_last = SCHEDULE_MAX - 1;
+//-std=gnu99
+task scheduler[SCHEDULE_MAX]={ [ 0 ... (SCHEDULE_MAX-1) ] = default_schedule };
 
 void add_task(task schedule) {// add task to scheduler
-	scheduler[schedule_inc(schedule_last)]=schedule;
+	scheduler[SCHEDULE_INC(schedule_last)]=schedule;
 }
 // end task framework
 
@@ -63,11 +76,6 @@ void exec_command(unsigned int* command){
 // end Car specific functions
 
 //tasks
-void sleep(){
-	set_sleep_mode(SLEEP_MODE_IDLE);//setup IDLE mode. only 1/4 powerconsumption
-	sleep_mode();//goto sleep
-}
-
 task ADC_task; // reserved
 
 /*
@@ -78,6 +86,16 @@ void get_lora_package(){//reserved later car func
 	for(unsigned char i=0;i<pack_size;i++) exec_command(SPI_read());
 }
 */
+#define throw_ERROR add_task(LED_on)
+void LED_on(){
+	PORTB|=(1<<5);
+	wdt_reset();//reset interval for error spamming
+	WDTCSR |= (1<<WDIE);//start watchdog
+}
+void LED_off(){
+	PORTB&=~(1<<5);
+}
+
 #define SERVO_COUNT 4
 #define PRESCALER 1
 #define SERVO_PERIODE (unsigned int)20000/4*8/PRESCALER
@@ -122,7 +140,7 @@ void servo_tester(){ // pythonsytyler :D
 			servo_buffer[x]=servo_min_ram[x];
 }
 
-void clock_inc(){ // kleine ungenaue uhr die mitläuft
+void clock_inc(){ // kleine ungenaue uhr die mitlï¿½uft
 	if(++precount) return;
 	precount=CLK_PRECOUNT;
 	seconds++;
@@ -146,8 +164,12 @@ void init_watchdog(){//for debug LED or another stupid function
 	wdt_reset();
 }
 
+#define SOFT_RESET init()
 void init(){ // first task to execute
-	for(unsigned char i=0;i<schedule_max;i++) scheduler[i]=default_schedule; // set all tasks to sleep
+	cli();
+	for(unsigned char i=0;i<SCHEDULE_MAX;i++) scheduler[i]=default_schedule; // set all tasks to sleep
+	schedule_first = 0;
+	schedule_last = SCHEDULE_MAX - 1;
 	add_task(init_spi_lora);
 	add_task(init_servos);
 	add_task(servo_tester);
@@ -181,7 +203,7 @@ ISR(INT0_vect) // lora pack reciving
 	}
 	*/
 	
-	add_task(sleep);
+	//add_task(sleep);
 }
 
 
@@ -207,27 +229,24 @@ ISR (TIMER1_COMPB_vect)
 	// servocontrol
 
 }
-void set_LED(){
-	PORTB|=(1<<5);
-	WDTCSR |= (1<<WDIE);//start watchdog
-}
+
 ISR(WDT_vect){
-	PORTB&=~(1<<5);
+	add_task(LED_off);
 }
 
 int main(void)
 {
 	add_task(init); // run init with scheduler
-	main_loop: // While(1){
+	main_loop: // while(1){
 		// Contexswitch means stack mark and goto not
 		scheduler[schedule_first]();
 		scheduler[schedule_first]=default_schedule;
 		
 		// if(schedule_first!=schedule_last)
-		//	schedule_inc(schedule_first);//looks better but doesnt work with schedule_max tasks because the task sticks
+		//	SCHEDULE_INC(schedule_first);//looks better but doesnt work with SCHEDULE_MAX tasks because the task sticks
 		
 		(schedule_first==schedule_last)?
-			schedule_first=schedule_inc(schedule_last) : 
-			schedule_inc(schedule_first); // schedule_max tasks works as long as now new task will be added
+			schedule_first=SCHEDULE_INC(schedule_last) : 
+			SCHEDULE_INC(schedule_first); // SCHEDULE_MAX tasks works as long as now new task will be added
 	goto main_loop;//}
 }
