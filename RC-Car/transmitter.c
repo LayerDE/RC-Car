@@ -18,8 +18,8 @@
 #include <avr/eeprom.h>		// for programming values
 #include <avr/pgmspace.h>	// for constant arrays
 #include <avr/wdt.h>
-#include "pinout_car.h"
 #include "sx1278_defs.h"
+#include "RC-CommandsV1.h"
 
 
 /**
@@ -32,7 +32,7 @@
 
 // task framework
 typedef void (*task)(void);//task is my name for a function pointer used in the scheduler
-
+//typedef void (*ADC_task)(uint16_t);//task is my name for a function pointer used in the scheduler
 // SCHEDULE_MAX-1 tasks work without any bugs  SCHEDULE_MAX must be 2^n for the performance (if its not 2^n its a performance issue)
 #define SCHEDULE_MAX (1<<4)
 #if (SCHEDULE_MAX & (SCHEDULE_MAX - 1))
@@ -62,23 +62,39 @@ void add_task(task schedule) {// add task to scheduler
 // end task framework
 
 //SPI framework
-#define SPI_BUFFER_SIZE (1 << 5)
+#define SPI_BUFFER_SIZE (1 << 7)
 unsigned char spi_buffer_index = 0;
 unsigned char spi_buffer[SPI_BUFFER_SIZE];
+unsigned char spi_pack_start
+unsigned char spi_pack_end
 //end SPI framework
+void spi_buffer_add(uint8_t value){
+	spi_buffer[spi_pack_end++]=value;
+}
+uint8_t spi_buffer_get(){
+	return spi_buffer[spi_pack_start++];
+}
+unsigned int EEMEM deadzone;
 
-// Car specific functions
-int servo_buffer[4];
-unsigned int eeprom_ptr=0xFFFF;
-void exec_command(unsigned int* command){
-	if((*command)&1) servo_buffer[(*command)&(0x02)]=(*command)/0x04;
+int16_t analog_decode(uint16_t analog_in){ //simple void to read analog input for servo with deadone (will b improved later)
+	int16_t tmp=analog_in-(~(uint16_t)0)/2);
+	if(tmp > 0) 
+		return (tmp - deadzone) < 0 ? 0 : (tmp - deadzone);
+	else
+		return (tmp + deadzone) > 0 ? 0 : (tmp + deadzone);
+}
+//tasks
+void read_steering(){
+	spi_buffer_add(RC_STEERING)
 	
 }
-// end Car specific functions
+void read_throttle(){
+	spi_buffer_add(RC_THROTTLE)
+	spi_buffer_add
+}
 
-//tasks
 task ADC_task; // reserved
-
+uint16_t ADC_value;
 /*
 void get_lora_package(){//reserved later car func
 	unsigned char pack_size=SPI_read();
@@ -97,55 +113,15 @@ void LED_off(){
 	PORTB&=~(1<<5);
 }
 
-#define SERVO_COUNT 4
-#define PRESCALER 1
-#define SERVO_PERIODE (unsigned int)20000/4*8/PRESCALER
-#define SERVO_CALC(int16) (SERVO_MIDDLE*8/PRESCALER+int16)
-// declare an eeprom array
-unsigned char servo_index = 0; // index of the servo who gets signal now
-unsigned int EEMEM servo_mid_eeprom[SERVO_COUNT]={1500*8/PRESCALER,1500*8/PRESCALER,1500*8/PRESCALER,1500*8/PRESCALER};
-unsigned int EEMEM servo_min_eeprom[SERVO_COUNT]={1000*8/PRESCALER,1000*8/PRESCALER,1000*8/PRESCALER,1000*8/PRESCALER};
-unsigned int EEMEM servo_max_eeprom[SERVO_COUNT]={2000*8/PRESCALER,2000*8/PRESCALER,2000*8/PRESCALER,2000*8/PRESCALER};
-// declare a ram array
-unsigned int servo_mid_ram[SERVO_COUNT];
-unsigned int servo_min_ram[SERVO_COUNT];
-unsigned int servo_max_ram[SERVO_COUNT];
-unsigned const char SERVO_PIN[SERVO_COUNT] PROGMEM={SERVO_ESC,SERVO_LIGHTS,SERVO_STEERING,SERVO_CAM}; 
-void init_servos(){
-	// direction
-	// WGM1 to mode 4 for clear on compare with OCR1A
-	CONFIG_BYTE(TCCR1A , BIT(COM1A1) | BIT(COM1B1) , BIT(WGM10) | BIT(WGM11));// FastPWM Mode mode TOP determined by ICR1 - non-inverting Compare Output mode
-	CONFIG_BYTE(TCCR1B , BIT(WGM12) | BIT(CS10) , BIT(CS11) | BIT(CS12) | BIT(WGM13));    // set prescaler to 1, FastPWM Mode mode continued
-	CONFIG_BYTE(TIFR0 , BIT(OCF1A) | BIT(OCF1B),0);
-	
-	DDR(C) = 0x0F; // Servo out
-
-	//ICR1 = 20000;      // set period to 20 ms
-	OCR1A = SERVO_PERIODE;      // set count to 1500 us - 90 degree
-	OCR1B = servo_mid_eeprom[servo_index];      // set count to 1500 us - 90 degree
-	TCNT1 = 0;         // reset timer
-	sei();
-}
-
 // teil der uhr
 #define CLK_PRECOUNT (0x0100-200)
 unsigned char precount=0;
 unsigned int seconds=0;
 
-void servo_tester(){ // pythonsytyler :D
-	if(!(seconds%4))
-		for(char x=0;x<SERVO_COUNT;x++)
-			servo_buffer[x]=servo_min_ram[x];
-	else if(!(seconds%2))
-		for(char x=0;x<SERVO_COUNT;x++)
-			servo_buffer[x]=servo_min_ram[x];
-}
-
 void clock_inc(){ // kleine ungenaue uhr die mitl�uft
 	if(++precount) return;
 	precount=CLK_PRECOUNT;
 	seconds++;
-	add_task(servo_tester);
 }
 
 void init_spi_lora()
@@ -172,8 +148,6 @@ void init(){ // first task to execute
 	schedule_first = 0;
 	schedule_last = SCHEDULE_MAX - 1;
 	add_task(init_spi_lora);
-	add_task(init_servos);
-	add_task(servo_tester);
 	add_task(init_watchdog);
 }
 
