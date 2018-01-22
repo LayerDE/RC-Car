@@ -10,6 +10,7 @@
 #define F_CPU 8000000UL
 
 #include "Universal.h"
+#include "pinout_transmitter.h"
 
 
 unsigned int EEMEM deadzone;
