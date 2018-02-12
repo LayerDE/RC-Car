@@ -3,7 +3,9 @@
 #include <linux/joystick.h>
 #include <stdlib.h>
 typedef int (*calc_axe_ptr)(__s16);
+typedef void (*btn_isr_ptr)(bool);
 calc_axe_ptr calc_axes[];
+btn_isr_ptr btn_fncs[]; //executed with a button event
 int axes[];
 bool buttons[];
 int js_handle
