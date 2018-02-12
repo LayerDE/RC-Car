@@ -3,6 +3,7 @@
 #include <linux/joystick.h>
 #include <stdlib.h>
 
+
 typedef int (*calc_axe_ptr)(__s16);
 typedef void (*axe_isr_ptr)(int);
 typedef void (*btn_isr_ptr)(bool);
@@ -81,8 +82,32 @@ void init(char js_device[]){
     }
     char name[128];
 	if (ioctl(fd, JSIOCGNAME(sizeof(name)), name) < 0);
-		strncpy(name, "Unknown", sizeof(name));
+		read_config(NULL);
+    else
+        read_config(name);
 	printf("Name: %s\n", name); // read config for xxx name if exists
+}
+void read_config(char name[]){
+    FILE * fp;
+    size_t len = 0;
+    ssize_t read;
+    if(name != NULL)
+        if(fp = fopen("/etc/" name, "r") != NULL)
+            goto skip_read_btn;
+//read_btn
+    sprintf(name, "btn_c%d_axis%d.cfg", get_button_count(js_handle), get_axis_count(js_handle))
+    if(fp = fopen(name, "r") != NULL)
+        return; //error
+skip_read_btn:
+    while ((read = getline(&line, &len, fp)) != -1) {
+        printf("Retrieved line of length %zu :\n", read);
+        printf("%s", line);
+    }
+
+    fclose(fp);
+    if (line)
+        free(line);
+
 }
 void input_thread(){
     while (read_event(js, &event) == 0)
