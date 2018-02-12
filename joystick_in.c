@@ -7,32 +7,32 @@
 typedef int (*calc_axe_ptr)(__s16);
 typedef void (*axe_isr_ptr)(int);
 typedef void (*btn_isr_ptr)(bool);
-calc_axe_ptr calc_axes[];
+calc_axe_ptr calc_axis[];
 axe_isr_ptr axe_functions[];
 btn_isr_ptr btn_functions[]; //executed with a button event
-int axes[];
+__s16 axis[];
 bool buttons[];
 int js_handle;
 __u32 last_time;
 __u32 time_last_event;
 size_t get_axis_count(int fd)
 {
-    __u8 axes;
+    __u8 axis;
 
-    if (ioctl(fd, JSIOCGAXES, &axes) == -1)
+    if (ioctl(fd, JSIOCGaxis, &axis) == -1)
         return 0;
 
-    return axes;
+    return axis;
 }
 
-int calc_axe_0mp(__s16 raw){
+__s16 calc_axe_0mp(__s16 raw){
     return raw;
 }
-int calc_axe_1m(__s16 raw){
-    return 1<<(sizeof(__s16)*8-1)+raw;
+__s16 calc_axe_1m(__s16 raw){
+    return (1<<(sizeof(__s16)*8-1)+raw)/2;
 }
-int calc_axe_1p(__s16 raw){
-    return -1<<(sizeof(__s16)*8-1)+raw;
+__s16 calc_axe_1p(__s16 raw){
+    return (-1<<(sizeof(__s16)*8-1)+raw)/2;
 }
 void btn_null_exec(bool state){
 
@@ -66,19 +66,23 @@ int read_event(int fd, struct js_event *event)
 void init(char js_device[]){
     if ((js_handle = open(js_device, O_RDONLY)) < 0)
         perror("Could not open joystick");
-    axes = malloc(sizeof(int)*get_axis_count(js_handle));
-    calc_axes = malloc(sizeof(calc_axe_ptr)*get_axis_count(js_handle));
-    buttons = malloc(sizeof(bool)*get_button_count(js_handle));
-    axe_functions = malloc(sizeof(axe_isr_ptr)*get_axis_count(js_handle));
-    btn_functions = malloc(sizeof(btn_isr_ptr)*get_button_count(js_handle));
-    for(x = 0;x<get_axis_count(js_handle);x++){
-        axes[x] = 0;
-        calc_axes = calc_axe_0mp;
-        axe_functions = axe_null_exec;
-    }
-    for(x = 0;x<get_button_count(js_handle);x++){
-        buttons = false;
-        btn_functions = btn_null_exec;
+    else{
+        axis_cnt = get_axis_count(js_handle);
+        btn_cnt = get_button_count(js_handle);
+        axis = malloc(sizeof(int)*axis_cnt);
+        calc_axis = malloc(sizeof(calc_axe_ptr)*axis_cnt;
+        buttons = malloc(sizeof(bool)*btn_cnt);
+        axe_functions = malloc(sizeof(axe_isr_ptr)*axis_cnt);
+        btn_functions = malloc(sizeof(btn_isr_ptr)*btn_cnt);
+        for(x = 0;x<axis_cnt;x++){
+            axis[x] = 0;
+            calc_axis = calc_axe_0mp;
+            axe_functions = axe_null_exec;
+        }
+        for(x = 0;x<btn_cnt;x++){
+            buttons = false;
+            btn_functions = btn_null_exec;
+        }
     }
     char name[128];
 	if (ioctl(fd, JSIOCGNAME(sizeof(name)), name) < 0);
@@ -93,21 +97,26 @@ void read_config(char name[]){
     ssize_t read;
     if(name != NULL)
         if(fp = fopen("/etc/" name, "r") != NULL)
-            goto skip_read_btn;
+            goto skip_read_btn;//TODO: kill goto! goto is bad code!
 //read_btn
     sprintf(name, "btn_c%d_axis%d.cfg", get_button_count(js_handle), get_axis_count(js_handle))
     if(fp = fopen(name, "r") != NULL)
         return; //error
 skip_read_btn:
+    int line_cnt = 0;
     while ((read = getline(&line, &len, fp)) != -1) {
-        printf("Retrieved line of length %zu :\n", read);
-        printf("%s", line);
+        line_cnt++;
+        if(line[0]=='#'||line[0]=='!')
+            continue;//kommentar zeile in der config
+        if(!exec_config_command(line))
+            perror("%s at line %d is not a valid config command",line,line_cnt);
     }
-
     fclose(fp);
     if (line)
         free(line);
-
+}
+bool exec_config_command(char command[]){
+    return false;
 }
 void input_thread(){
     while (read_event(js, &event) == 0)
@@ -118,7 +127,7 @@ void input_thread(){
                 btn_functions[event.number](buttons[event.number] = event.value ? true : false);
                 break;
             case JS_EVENT_AXIS:
-                axe_functions[event.number](axes[event.number] = calc_axes[event.number](event.value));
+                axe_functions[event.number](axis[event.number] = calc_axis[event.number](event.value));
                 break;
             case JS_EVENT_INIT:
                 break;
