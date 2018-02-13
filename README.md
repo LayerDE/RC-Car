@@ -1,5 +1,6 @@
 # RC-Car
 Programming for my RC Car
+### !important! Don't use this code now many things will be recoded
 
 ### todo:
 - [x] avr scheduler
@@ -22,3 +23,4 @@ Programming for my RC Car
 - 5.8GHz Camera System
 - Some Electronic parts (3.3V Stepdown, Levelshifter, LED, Mosfet)
 - a PC to develop the code for you personal car and to make the settings for the EEPROM
+In the final version alternate hardware will be usabe
