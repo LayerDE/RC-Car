@@ -16,9 +16,9 @@ Programming for my RC Car
 - [ ] waiting for some hardware
 
 ### Hardware:
--1/10 RC Car with ESC and Steeringservo
--two Atmel Atmega328
--two SX1278
--5.8GHz Camera System
--Some Electronic parts (3.3V Stepdown, Levelshifter, LED, Mosfet)
--a PC to develop the code for you personal car and to make the settings for the EEPROM
+- 1/10 RC Car with ESC and Steeringservo
+- two Atmel Atmega328
+- two SX1278
+- 5.8GHz Camera System
+- Some Electronic parts (3.3V Stepdown, Levelshifter, LED, Mosfet)
+- a PC to develop the code for you personal car and to make the settings for the EEPROM
