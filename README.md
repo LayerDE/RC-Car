@@ -13,7 +13,7 @@ Programming for my RC Car
 - [ ] set up sensors (speed distance accelaration)
 - [ ] car fun parts :D
 - [ ] ready up for automotive driving (control car by wire)
-- [ ] waiting for some hardware
+- [ ] waiting for some hardware (levelshifter)
 
 ### Hardware:
 - 1/10 RC Car with ESC and Steeringservo
