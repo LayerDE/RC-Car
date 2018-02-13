@@ -2,8 +2,8 @@
 Programming for my RC Car
 
 ### todo:
-- [ ] avr scheduler: testing with wakeup
-- [ ] isr: fixing
+- [x] avr scheduler
+- [ ] isr: fixing/testing
 - [ ] servo controller: fixing
 - [ ] lora
 - [ ] car
@@ -13,3 +13,4 @@ Programming for my RC Car
 - [ ] set up sensors (speed distance accelaration)
 - [ ] car fun parts :D
 - [ ] ready up for automotive driving (control car by wire)
+- [ ] waiting for some hardware
