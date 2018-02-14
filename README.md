@@ -15,7 +15,7 @@ Don't use this code now many things will be recoded
 - [ ] set up sensors (speed distance accelaration)
 - [ ] car fun parts :D
 - [ ] ready up for automotive driving (control car by wire)
-- [ ] waiting for some hardware (levelshifter)
+- [x] waiting for some hardware (levelshifter)
 
 ### Hardware:
 - 1/10 RC Car with ESC and Steeringservo
@@ -26,3 +26,9 @@ Don't use this code now many things will be recoded
 - a PC to develop the code for you personal car and to make the settings for the EEPROM
 
 In the final version alternate hardware will be usabe
+
+###Current Work:
+-joystic from raspberry
+-Transmitter and Car code
+-Car hardware
+-Lora transmitter
