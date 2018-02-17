@@ -15,7 +15,7 @@ Don't use this code now many things will be recoded
 - [ ] set up sensors (speed distance accelaration)
 - [ ] car fun parts :D
 - [ ] ready up for automotive driving (control car by wire)
-- [x] waiting for some hardware (levelshifter)
+- [x] hardware is complete
 
 ### Hardware:
 - 1/10 RC Car with ESC and Steeringservo
