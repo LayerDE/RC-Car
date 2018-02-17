@@ -16,7 +16,7 @@ int servo_buffer[4];
 unsigned int eeprom_ptr=0xFFFF;
 uint16_t command_puffer;
 void exec_command(unsigned char command0,unsigned char command1){
-	switch(*command>>12){
+	switch(command0>>4){
 		case 0x0:
 			break;
 		case 0x1:
@@ -50,7 +50,8 @@ void exec_command(unsigned char command0,unsigned char command1){
 		case 0xF:
 			break;
 	}
-	if((*command)&1) servo_buffer[(*command)&(0x02)]=(*command)/0x04;
+	if((command0)&1)
+		servo_buffer[(command0)&(0x02)]=(command0)/0x04*0x10;
 	
 }
 void _exec_servo(){
@@ -67,7 +68,7 @@ void _exec_reload_servo(){
 unsigned int EEMEM deadzone;
 
 int16_t analog_decode(uint16_t analog_in){ //simple void to read analog input for servo with deadone (will b improved later)
-	int16_t tmp=analog_in-(~(uint16_t)0)/2);
+	int16_t tmp=analog_in-((~(uint16_t)0)/2);
 	if(tmp > 0) 
 		return (tmp - deadzone) < 0 ? 0 : (tmp - deadzone);
 	else

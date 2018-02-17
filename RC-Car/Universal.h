@@ -10,7 +10,7 @@
 #include <avr/pgmspace.h>	// for constant arrays
 #include <avr/wdt.h>
 #include "sx1278_defs.h"
-#include "RC-CommandsV1.h"
+//#include "RC-CommandsV1.h"
 
 /**
  * Use with A,B,C or D
