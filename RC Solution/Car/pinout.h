@@ -1,13 +1,14 @@
 /*
- * pinout_car.h
+ * pinout.h
  *
- * Created: 24.10.2017 23:06:09
+ * Created: 24.02.2018 13:43:28
  *  Author: Victor
  */ 
 
 
-#ifndef PINOUT_CAR_H_
-#define PINOUT_CAR_H_
+#ifndef PINOUT_H_
+#define PINOUT_H_
+
 
 #define LORA_RESET
 #define LORA_NSS PCB2
@@ -27,5 +28,4 @@
 #define DEBUG_LED PB5
 
 
-
-#endif /* PINOUT_CAR_H_ */
+#endif /* PINOUT_H_ */

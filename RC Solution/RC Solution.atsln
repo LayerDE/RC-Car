@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Atmel Studio Solution File, Format Version 11.00
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "Car", "Car\Car.cproj", "{DCE6C7E3-EE26-4D79-826B-08594B9AD897}"
+EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "Transmitter", "Transmitter\Transmitter.cproj", "{C1D73759-F004-4EF2-AAC4-95C00D537804}"
+EndProject
+Project("{54F91283-7BC4-4236-8FF9-10F437C3AD48}") = "RC-Lib", "RC-Lib\RC-Lib.cproj", "{63FA3FB7-9ECD-4E3B-8ADA-B8169B221F73}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{BE8ED96F-6557-44AE-BABB-B5C7B9CEF3E7}"
+	ProjectSection(SolutionItems) = preProject
+		eeprom_adr.h = eeprom_adr.h
+		Macros.h = Macros.h
+		RC-Command-Interface_V1.h = RC-Command-Interface_V1.h
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|AVR = Debug|AVR
+		Release|AVR = Release|AVR
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Debug|AVR.ActiveCfg = Debug|AVR
+		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Debug|AVR.Build.0 = Debug|AVR
+		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Release|AVR.ActiveCfg = Release|AVR
+		{DCE6C7E3-EE26-4D79-826B-08594B9AD897}.Release|AVR.Build.0 = Release|AVR
+		{C1D73759-F004-4EF2-AAC4-95C00D537804}.Debug|AVR.ActiveCfg = Debug|AVR
+		{C1D73759-F004-4EF2-AAC4-95C00D537804}.Debug|AVR.Build.0 = Debug|AVR
+		{C1D73759-F004-4EF2-AAC4-95C00D537804}.Release|AVR.ActiveCfg = Release|AVR
+		{C1D73759-F004-4EF2-AAC4-95C00D537804}.Release|AVR.Build.0 = Release|AVR
+		{63FA3FB7-9ECD-4E3B-8ADA-B8169B221F73}.Debug|AVR.ActiveCfg = Debug|AVR
+		{63FA3FB7-9ECD-4E3B-8ADA-B8169B221F73}.Debug|AVR.Build.0 = Debug|AVR
+		{63FA3FB7-9ECD-4E3B-8ADA-B8169B221F73}.Release|AVR.ActiveCfg = Release|AVR
+		{63FA3FB7-9ECD-4E3B-8ADA-B8169B221F73}.Release|AVR.Build.0 = Release|AVR
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

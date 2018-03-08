@@ -1,11 +1,7 @@
-/*
- * sx1278_defs.h
- *
- * Created: 24.10.2017 23:08:37
- *  Author: Victor
- */ 
-#ifndef RC_COMMAND_INTERFACE_V1_
-#define RC_COMMAND_INTERFACE_V1_
+#ifndef _RC_COMMAND_INTERFACE_V1
+#define _RC_COMMAND_INTERFACE_V1
+
+
 #define _4BIT(NAME,x) #define NAME_0 0x##x 0\
 #define NAME_1 0x##x 1\
 #define NAME_2 0x##x 2\
@@ -23,9 +19,13 @@
 #define NAME_E 0x##x E\
 #define NAME_F 0x##x F\
 
-#define RC_STEERING 0xF0
-#define RC_THROTTLE 0xE1
-#define _4BIT(RC_SET_EEPROM,9)
-#define _4BIT(RC_GET_EEPROM,A)
+_4BIT(RC_SET_EEPROM,9)
+_4BIT(RC_GET_EEPROM,A)
+_4BIT(RC_SERVO_THROTTLE,0)
+_4BIT(RC_SERVO_STEERING,2)
+_4BIT(RC_SERVO_CAM,4)
+_4BIT(RC_SERVO_LIGHT,6)
 //USED F0 E1 9x Ax
-#endif /* RC_COMMAND_INTERFACE_V1_*/
+
+
+#endif /* _RC_COMMAND_INTERFACE_V1*/
