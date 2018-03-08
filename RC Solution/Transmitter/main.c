@@ -149,7 +149,7 @@ int main(void)
 		scheduler[schedule_first]=default_schedule;
 		
 		(schedule_first==schedule_last)?
-			schedule_first=SCHEDULE_INC(schedule_last) :
+			schedule_last=SCHEDULE_INC(schedule_first) :
 			SCHEDULE_INC(schedule_first); // SCHEDULE_MAX tasks works as long as now new task will be added
 	goto main_loop;//}
 }

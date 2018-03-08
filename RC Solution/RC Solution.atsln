@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		eeprom_adr.h = eeprom_adr.h
 		Macros.h = Macros.h
+		old code.c = old code.c
 		RC-Command-Interface_V1.h = RC-Command-Interface_V1.h
 	EndProjectSection
 EndProject

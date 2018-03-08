@@ -134,7 +134,7 @@ int main(void)//!save function!
 		(schedule_first==schedule_last)?
 			//isr comes here schedule last one too high! task will be skipped! and worked after SCHEDULE_MAX tasks!
 			//fixed with add_schedule V2
-			schedule_first=SCHEDULE_INC(schedule_last) :
+			schedule_last=SCHEDULE_INC(schedule_first) :
 			SCHEDULE_INC(schedule_first); // SCHEDULE_MAX tasks works as long as now new task will be added
 	goto main_loop;//}
 }

@@ -82,7 +82,8 @@ task scheduler[SCHEDULE_MAX]={ [ 0 ... (SCHEDULE_MAX-1) ] = default_schedule };
 
 //V2
 void add_task(task schedule) {// add task to scheduler
-	while(true)
+	uint8_t temp = SCHEDULE_MAX;
+	while(--temp)
 		if(scheduler[SCHEDULE_INC(schedule_last)]==default_schedule)
 			break;//fix scheduler for SCHEDULE_MAX task concept
 	scheduler[schedule_last]=schedule;
