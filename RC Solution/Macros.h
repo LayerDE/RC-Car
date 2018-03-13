@@ -25,7 +25,7 @@
 #define CLK_PRECOUNT (0x0100-200)
 
 #define SERVO_COUNT 4
-#define PRESCALER 1
+#define PRESCALER 8
 #define SERVO_PERIODE (unsigned int)20000/SERVO_COUNT*F_CPU_MHz/PRESCALER
 #define SERVO_CALC(servo,int16) (servo_mid_ram[servo]*F_CPU_MHz/PRESCALER+int16)
 

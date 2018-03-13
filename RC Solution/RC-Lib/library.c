@@ -48,6 +48,9 @@ unsigned char precount=0;
 unsigned int seconds=0;
 
 
+task ADC_task; // reserved
+uint16_t ADC_value;
+
 void clock_inc(){ // kleine ungenaue uhr die mitläuft
 	if(++precount) return;
 	precount=CLK_PRECOUNT;
@@ -76,7 +79,7 @@ void init_watchdog(){//for debug LED or another stupid function
 
 
 unsigned char schedule_first = 0;
-unsigned char schedule_last = SCHEDULE_MAX - 1;
+unsigned char schedule_last = 0;
 //-std=gnu99
 task scheduler[SCHEDULE_MAX]={ [ 0 ... (SCHEDULE_MAX-1) ] = default_schedule };
 

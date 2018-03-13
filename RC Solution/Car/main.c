@@ -8,6 +8,7 @@
 #include <avr/io.h>
 #include "../Macros.h"
 #include "../RC-Command-Interface_V1.h"
+#include "../eeprom_adr.h"
 	
 #include "pinout.h"
 
@@ -65,6 +66,8 @@ ISR(ADC_vect)// ADC isr reserved
 	add_task(ADC_task);
 }
 
+unsigned char servo_index = 0; // index of the servo who gets signal now
+
 ISR (TIMER1_COMPA_vect)
 {
 	PORT(C)|=SERVO_PIN[servo_index];
@@ -101,17 +104,19 @@ void init_servos(){
 	eeprom_read_block(servo_min_ram,EEPROM_CAR_SERVO_MIN,EEPROM_SERVO_SIZE);
 	eeprom_read_block(servo_mid_ram,EEPROM_CAR_SERVO_MID,EEPROM_SERVO_SIZE)
 	eeprom_read_block(servo_max_ram,EEPROM_CAR_SERVO_MAX,EEPROM_SERVO_SIZE)
+	for(uint8_t x = 0; x<SERVO_COUNT;x++)
+		servo_buffer[x]=servo_mid_ram[x];
 	// direction
 	// WGM1 to mode 4 for clear on compare with OCR1A
-	CONFIG_BYTE(TCCR1A , BIT(COM1A1) | BIT(COM1B1) , BIT(WGM10) | BIT(WGM11));// FastPWM Mode mode TOP determined by ICR1 - non-inverting Compare Output mode
-	CONFIG_BYTE(TCCR1B , BIT(WGM12) | BIT(CS10) , BIT(CS11) | BIT(CS12) | BIT(WGM13));    // set prescaler to 1, FastPWM Mode mode continued
-	CONFIG_BYTE(TIFR0 , BIT(OCF1A) | BIT(OCF1B),0);
-	
+	CONFIG_BYTE(TCCR1A , 0 , BIT(WGM10) | BIT(WGM11) | BIT(COM1A1) | BIT(COM1B1));// CTC Mode mode TOP determined by OCR1A //
+	CONFIG_BYTE(TCCR1B , BIT(WGM12) | BIT(CS11) , BIT(CS10) | BIT(CS12) | BIT(WGM13));    // set prescaler to 1/8
+	CONFIG_BYTE(TIFR1 , BIT(OCF1A) | BIT(OCF1B),0);
+	CONFIG_BYTE(TIMSK1 , BIT(OCIE1A)|BIT(OCIE1B), 0);
 	DDR(C) = 0x0F; // Servo out
 
 	//ICR1 = 20000;      // set period to 20 ms
 	OCR1A = SERVO_PERIODE;      // set count to 1500 us - 90 degree
-	OCR1B = servo_mid_eeprom[servo_index];      // set count to 1500 us - 90 degree
+	OCR1B = servo_buffer[servo_index];      // set count to 1500 us - 90 degree
 	TCNT1 = 0;         // reset timer
 	sei();
 }
