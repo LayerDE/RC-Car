@@ -22,8 +22,8 @@ int maxUs = 2150;
 
 // These are all GPIO pins on the ESP32
 // Recommended pins include 2,4,12-19,21-23,25-27,32-33 
-int servo1Pin = 18;
-int servo2Pin = 19;
+int servo1Pin = 13;
+int servo2Pin = 21;
 int servo3Pin = 12;
 
 int pos1 = 0;      // position in degrees
@@ -37,7 +37,7 @@ void setup() {
   throttle.attach(servo1Pin, minUs, maxUs);
   steering.attach(servo2Pin, minUs, maxUs);
   lights.attach(servo3Pin, minUs, maxUs);
-  Serial.begin(9600);
+  Serial.begin(921600);
   while (!Serial);
 
   Serial.println("LoRa Receiver");
@@ -47,8 +47,8 @@ void setup() {
     Serial.println("Starting LoRa failed!");
     while (1);
   }
-  throttle.writeMicroseconds(1500);
-  steering.writeMicroseconds(1500);
+  throttle.write(90);
+  steering.write(90);
   lights.writeMicroseconds(LIGHTS_OFF);
 }
 
@@ -100,7 +100,7 @@ void loop() {
           break;
         case 2:
           pos1 |= tmp_val;
-          throttle.write(pos1);
+          throttle.writeMicroseconds(pos1);
           state = 0;
           break;
         case 3:
@@ -109,7 +109,7 @@ void loop() {
           break;
         case 4:
           pos2 |= tmp_val;
-          steering.write(pos2);
+          steering.writeMicroseconds(pos2);
           state = 0;
           break;
       }

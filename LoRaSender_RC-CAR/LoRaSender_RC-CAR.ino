@@ -21,7 +21,7 @@
 char buffer[4];
 char event_buffer[256];
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(921600);
   while (!Serial);
 
   Serial.println("LoRa Sender");
