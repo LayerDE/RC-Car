@@ -18,6 +18,9 @@
 #define SERVO1_MAX ((1<<12)-1)
 #define DEADZONE1 (1<<5)
 
+int ADC_buff0 = SERVO0_MID * 10;
+int ADC_buff1 = SERVO0_MID * 10;
+
 char buffer[4];
 char event_buffer[256];
 void setup() {
@@ -39,7 +42,7 @@ void set_buff(uint16_t inval){
     buffer[2] = inval & 0xFF;
 }
 void getServo0(){
-  int tmp = analogRead(ADC_SERVO0);
+  int tmp = ADC_buff0 / 10;
   buffer[0] = 'x';
   if(tmp < SERVO0_MID){
     if(tmp > SERVO0_MID - DEADZONE0)
@@ -60,7 +63,7 @@ void getServo0(){
 }
 
 void getServo1(){
-  int tmp = analogRead(ADC_SERVO1);
+  int tmp = ADC_buff1 / 10;
   buffer[0] = 'y';
   if(tmp < SERVO1_MID){
     if(tmp > SERVO1_MID - DEADZONE1)
@@ -92,5 +95,11 @@ void loop() {
   LoRa.print(event_buffer);
   event_buffer[0] = '\0';
   LoRa.endPacket();
-  delay(5);
+  ADC_buff0 /= 2;
+  ADC_buff1 /= 2;
+  for(int i = 0; i< 5; i++){
+  delay(1);
+  ADC_buff0 += analogRead(ADC_SERVO0);
+  ADC_buff1 += analogRead(ADC_SERVO1);
+  }
 }
